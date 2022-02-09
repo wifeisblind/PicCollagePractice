@@ -25,14 +25,8 @@ class EditPicView @JvmOverloads constructor(
         style = Paint.Style.STROKE
     }
 
-    private val eraser: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
-        color = Color.WHITE
-    }
-
     fun load(uri: Uri, scale: Float = 1f, position: Point? = null, degree: Int = 0, cropping: Rect? = null) {
-        bitmap = getImageBitmap(uri)
+        bitmap = getImageBitmap(uri) ?: return
         val fitX = measuredWidth.toFloat() / bitmap.width
         val fitY = measuredHeight.toFloat() / bitmap.height
         if (fitX > fitY) {
@@ -52,13 +46,9 @@ class EditPicView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun getImageBitmap(uri: Uri): Bitmap {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.createSource(context.contentResolver, uri).let { source ->
-                ImageDecoder.decodeBitmap(source)
-            }
-        } else {
-            TODO()
+    private fun getImageBitmap(uri: Uri): Bitmap? {
+        return context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it)
         }
     }
 
